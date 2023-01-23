@@ -11,6 +11,8 @@ import { HospitalModule } from './hospital/hospital.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { SearchModule } from './search/search.module';
 import { UploadModule } from './upload/upload.module';
+import * as path from 'path';
+import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 
 @Module({
   imports: [
@@ -22,6 +24,17 @@ import { UploadModule } from './upload/upload.module';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
+    }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'es',
+      loaderOptions: {
+        path: path.join(__dirname, '/i18n/'),
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+      ],
     }),
     CommonModule,
     UserModule,

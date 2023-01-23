@@ -1,6 +1,11 @@
 import { PaginationDto } from '@/common/dto/pagination.dto';
-import { handleExceptions } from '@/common/exceptions';
-import { Injectable } from '@nestjs/common';
+import { CreateException } from '@/common/exceptions/create.exception';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateHospitalDto } from './dto/create-hospital.dto';
@@ -21,7 +26,7 @@ export class HospitalService {
       });
       return hospitalCreated;
     } catch (error) {
-      handleExceptions(error);
+      throw new CreateException(error, 'El hospital');
     }
   }
 
@@ -44,15 +49,34 @@ export class HospitalService {
     };
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} hospital`;
+  async findOne(id: string) {
+    const hospital = await this.hospitalModel.findById(id);
+
+    if (!hospital) throw new NotFoundException(`Hospital no encontrado.`);
+    return hospital;
   }
 
-  update(id: string, updateHospitalDto: UpdateHospitalDto) {
-    return `This action updates a #${id} hospital`;
+  async update(id: string, updateHospitalDto: UpdateHospitalDto) {
+    const hospital = await this.findOne(id);
+
+    try {
+      await hospital.updateOne(updateHospitalDto);
+      return {
+        ...hospital.toJSON(),
+        ...updateHospitalDto,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Hubo un error.');
+    }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} hospital`;
+  async remove(id: string) {
+    const { deletedCount } = await this.hospitalModel.deleteOne({ _id: id });
+
+    if (deletedCount === 0) {
+      throw new BadRequestException(`Hospital no encontrado.`);
+    }
+
+    return {};
   }
 }

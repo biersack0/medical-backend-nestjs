@@ -36,7 +36,10 @@ export class UploadController {
           if (folderToAccess.includes(collection))
             return cb(null, `./public/uploads/${collection}`);
 
-          return cb(new BadRequestException('Collection not found.'), 'Error');
+          return cb(
+            new BadRequestException('Colección no encontrada.'),
+            'Error',
+          );
         },
         filename: (req, file, cb) => {
           const extension = file.mimetype.split('/').at(-1);

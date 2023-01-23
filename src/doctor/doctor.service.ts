@@ -1,5 +1,11 @@
-import { handleExceptions } from '@/common/exceptions';
-import { Injectable } from '@nestjs/common';
+import { PaginationDto } from '@/common/dto/pagination.dto';
+import { CreateException } from '@/common/exceptions/create.exception';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
@@ -9,38 +15,69 @@ import { Doctor } from './entities/doctor.entity';
 @Injectable()
 export class DoctorService {
   constructor(
-    @InjectModel(Doctor.name) private readonly hospitalModel: Model<Doctor>,
+    @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
   ) {}
 
   async create(userId: string, createDoctorDto: CreateDoctorDto) {
-    /* return {
-      userId,
-      data: createDoctorDto,
-    }; */
     try {
-      const hospitalCreated = await this.hospitalModel.create({
+      const doctorCreated = await this.doctorModel.create({
         user: userId,
         ...createDoctorDto,
       });
-      return hospitalCreated;
+      return doctorCreated.populate('hospital', 'name image');
     } catch (error) {
-      handleExceptions(error);
+      throw new CreateException(error, 'El doctor');
     }
   }
 
-  findAll() {
-    return `This action returns all doctor`;
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = 10, page = 1 } = paginationDto;
+    const total = await this.doctorModel.countDocuments();
+    const totalPages = Math.ceil(total / limit);
+
+    const doctors = await this.doctorModel
+      .find()
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .populate('user', 'name image')
+      .populate('hospital', 'name image');
+
+    return {
+      total,
+      'total-pages': totalPages,
+      page,
+      doctors,
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} doctor`;
+  async findOne(id: string) {
+    const doctor = await this.doctorModel.findById(id);
+
+    if (!doctor) throw new NotFoundException(`Doctor no encontrado.`);
+    return doctor;
   }
 
-  update(id: number, updateDoctorDto: UpdateDoctorDto) {
-    return `This action updates a #${id} doctor`;
+  async update(id: string, updateDoctorDto: UpdateDoctorDto) {
+    const doctor = await this.findOne(id);
+
+    try {
+      await doctor.updateOne(updateDoctorDto);
+      return {
+        ...doctor.toJSON(),
+        ...updateDoctorDto,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Hubo un error.');
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} doctor`;
+  async remove(id: string) {
+    const { deletedCount } = await this.doctorModel.deleteOne({ _id: id });
+
+    if (deletedCount === 0) {
+      throw new BadRequestException(`Doctor no encontrado.`);
+    }
+
+    return {};
   }
 }

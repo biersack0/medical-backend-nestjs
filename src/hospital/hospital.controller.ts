@@ -54,7 +54,7 @@ export class HospitalController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', MongoIdPipe) id: string) {
     return this.hospitalService.remove(id);
   }
 }

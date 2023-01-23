@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,9 +10,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { User } from './entities/user.entity';
-import { handleExceptions } from '@/common/exceptions';
 import { Utils } from '@/common/utils/utils';
 import { CreategGoogleUserDto } from './dto/create-google-user.dto';
+import { CreateException } from '@/common/exceptions/create.exception';
 
 @Injectable()
 export class UserService {
@@ -28,7 +29,7 @@ export class UserService {
       const userCreated = await this.userModel.create(createUserDto);
       return userCreated;
     } catch (error) {
-      handleExceptions(error);
+      throw new CreateException(error, 'El usuario');
     }
   }
 
@@ -73,13 +74,19 @@ export class UserService {
   async findOne(id: string) {
     const user = await this.userModel.findById(id);
 
-    if (!user) throw new NotFoundException(`User with id not found.`);
+    if (!user) throw new NotFoundException(`Usuario no encontrado.`);
 
     return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id);
+
+    if (updateUserDto.password) {
+      updateUserDto.password = new Utils().encryptPassword(
+        updateUserDto.password,
+      );
+    }
 
     try {
       await user.updateOne(updateUserDto);
@@ -88,7 +95,7 @@ export class UserService {
         ...updateUserDto,
       };
     } catch (error) {
-      handleExceptions(error);
+      throw new InternalServerErrorException('Hubo un error.');
     }
   }
 
@@ -96,9 +103,9 @@ export class UserService {
     const { deletedCount } = await this.userModel.deleteOne({ _id: id });
 
     if (deletedCount === 0) {
-      throw new BadRequestException(`User with id ${id} does not exist.`);
+      throw new BadRequestException(`Usuario no encontrado.`);
     }
 
-    return `User was deleted successfully.`;
+    return {};
   }
 }

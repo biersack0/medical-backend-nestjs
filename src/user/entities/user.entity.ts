@@ -19,6 +19,9 @@ export class User {
 
   @Prop({ type: Boolean, default: false })
   hasGoogle: boolean;
+
+  @Prop({ type: Boolean, default: true })
+  isActive: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

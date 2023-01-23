@@ -1,28 +1,47 @@
 import {
   IsBoolean,
   IsEmail,
+  IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
+import { i18nValidationMessage } from 'nestjs-i18n';
 
 export class CreategGoogleUserDto {
-  @IsString()
-  @IsEmail()
+  @IsNotEmpty({
+    message: i18nValidationMessage('validation.SHOULD_NOT_BE_EMPTY', {
+      property: 'El correo electrónico',
+    }),
+  })
+  @IsEmail(
+    {},
+    { message: i18nValidationMessage('validation.MUST_BE_AN_EMAIL') },
+  )
   email: string;
 
-  @IsString()
-  @MinLength(3)
+  @IsString({
+    message: i18nValidationMessage('validation.MUST_BE_A_PASSWORD'),
+  })
+  @MinLength(8, { message: i18nValidationMessage('validation.MIN_PASSWORD') })
   password: string;
 
-  @IsString()
-  @MinLength(3)
+  @IsString({
+    message: i18nValidationMessage('validation.MUST_BE_A_NAME'),
+  })
+  @MinLength(3, {
+    message: i18nValidationMessage('validation.MIN', {
+      property: 'El nombre',
+    }),
+  })
   name: string;
 
   @IsOptional()
   @IsString()
   image?: string;
 
-  @IsBoolean()
+  @IsBoolean({
+    message: i18nValidationMessage('validation.MUST_BE_A_BOOLEAN_VALUE'),
+  })
   hasGoogle: boolean;
 }

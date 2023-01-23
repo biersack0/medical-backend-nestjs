@@ -35,14 +35,15 @@ export class AuthService {
     });
 
     if (!userDB)
-      throw new NotFoundException(`User with email ${email} not found.`);
+      throw new NotFoundException(`Usuario con email ${email} no encontrado.`);
 
     const isSamePassword = await new Utils().isSamePassword(
       password,
       userDB.password,
     );
 
-    if (!isSamePassword) throw new BadRequestException(`Password incorrect.`);
+    if (!isSamePassword)
+      throw new BadRequestException(`Contraseña incorrecta.`);
 
     // generate JWT
     const payload = { user: userDB.name, id: userDB._id };
@@ -73,7 +74,7 @@ export class AuthService {
       const data = ticket.getPayload();
       return data;
     } catch (error) {
-      throw new BadRequestException('Google Token invalid.');
+      throw new BadRequestException('Google Token inválido.');
     }
   }
 

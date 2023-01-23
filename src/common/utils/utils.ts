@@ -11,4 +11,8 @@ export class Utils {
     const isMatch = await bcrypt.compare(password, passwordInDatabase);
     return isMatch;
   }
+
+  capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
 }

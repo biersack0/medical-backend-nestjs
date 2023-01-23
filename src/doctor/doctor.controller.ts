@@ -1,4 +1,6 @@
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { PaginationDto } from '@/common/dto/pagination.dto';
+import { MongoIdPipe } from '@/common/pipes/mongo-id/mongo-id.pipe';
 import { JWTUtil } from '@/common/utils/JWTUtil';
 import {
   Controller,
@@ -10,11 +12,13 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { DoctorService } from './doctor.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('doctor')
 export class DoctorController {
   constructor(
@@ -22,7 +26,6 @@ export class DoctorController {
     private readonly jwtUtil: JWTUtil,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(
     @Headers('Authorization') auth: string,
@@ -33,22 +36,25 @@ export class DoctorController {
   }
 
   @Get()
-  findAll() {
-    return this.doctorService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.doctorService.findAll(paginationDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.doctorService.findOne(+id);
+  findOne(@Param('id', MongoIdPipe) id: string) {
+    return this.doctorService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDoctorDto: UpdateDoctorDto) {
-    return this.doctorService.update(+id, updateDoctorDto);
+  update(
+    @Param('id', MongoIdPipe) id: string,
+    @Body() updateDoctorDto: UpdateDoctorDto,
+  ) {
+    return this.doctorService.update(id, updateDoctorDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.doctorService.remove(+id);
+  remove(@Param('id', MongoIdPipe) id: string) {
+    return this.doctorService.remove(id);
   }
 }

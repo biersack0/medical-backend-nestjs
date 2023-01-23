@@ -10,7 +10,7 @@ import { isMongoId } from 'class-validator';
 export class MongoIdPipe implements PipeTransform {
   transform(value: any, metadata: ArgumentMetadata) {
     if (!isMongoId(value))
-      throw new BadRequestException(`${value} is not a mongoId`);
+      throw new BadRequestException(`${value} no es un mongo id válido.`);
     return value;
   }
 }

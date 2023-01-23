@@ -50,7 +50,7 @@ export class SearchService {
         break;
       default:
         throw new BadRequestException(
-          `The collection must be a doctor, hospital or user.`,
+          `Colección debe se un doctor, hospital o usuario.`,
         );
     }
 

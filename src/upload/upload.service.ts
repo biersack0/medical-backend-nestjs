@@ -25,7 +25,7 @@ export class UploadService {
 
       fs.unlink(currentPathImage, (err) => {
         if (err)
-          throw new BadRequestException('There was a problem with the image.');
+          throw new BadRequestException('Hay un problema con la imagen.');
       });
     };
 
@@ -35,16 +35,14 @@ export class UploadService {
 
         fs.unlink(currentPathToDelete, (err) => {
           if (err)
-            throw new BadRequestException(
-              'There was a problem with the image.',
-            );
+            throw new BadRequestException('Hay un problema con la imagen.');
         });
       }
     };
 
     if (!isMongoId(id)) {
       deleteImageIfInvalidID();
-      throw new BadRequestException(`${id} is not a mongoId`);
+      throw new BadRequestException(`${id} no es un mongo id válido.`);
     }
 
     switch (collection) {
@@ -53,7 +51,7 @@ export class UploadService {
 
         if (!user) {
           deleteImageIfInvalidID();
-          throw new NotFoundException(`User with id not found.`);
+          throw new NotFoundException(`Usuario con id ${id} no encontrado.`);
         }
 
         deleteImageIfExists(collection, user.image);
@@ -65,7 +63,7 @@ export class UploadService {
         const hospital = await this.hospitalModel.findById(id);
         if (!hospital) {
           deleteImageIfInvalidID();
-          throw new NotFoundException(`Hospital with id not found.`);
+          throw new NotFoundException(`Hospital con id ${id} no encontrado.`);
         }
 
         deleteImageIfExists(collection, hospital.image);
@@ -77,7 +75,7 @@ export class UploadService {
         const doctor = await this.doctorModel.findById(id);
         if (!doctor) {
           deleteImageIfInvalidID();
-          throw new NotFoundException(`Doctor with id not found.`);
+          throw new NotFoundException(`Doctor con id ${id} no encontrado.`);
         }
 
         deleteImageIfExists(collection, doctor.image);
@@ -86,7 +84,7 @@ export class UploadService {
         return doctor;
 
       default:
-        throw new BadRequestException(`Collection not found.`);
+        throw new BadRequestException(`Colección no encontrada.`);
     }
   }
 }
